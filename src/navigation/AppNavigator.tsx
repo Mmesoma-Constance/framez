@@ -7,6 +7,7 @@ import { FeedScreen } from '../screens/FeedScreen';
 import { CreatePostScreen } from '../screens/CreatePostScreen';
 import { ProfileScreen } from '../screens/ProfileScreen';
 import { UserProfileScreen } from '../screens/UserProfileScreen';
+import { CommentsScreen } from '../screens/CommentsScreen';
 import { AuthScreen } from '../screens/AuthScreen';
 import { useAuth } from '../context/AuthContext';
 
@@ -65,6 +66,11 @@ export const AppNavigator: React.FC = () => {
           name="UserProfile" 
           component={UserProfileScreen}
           options={{ headerShown: true, title: '' }}
+        />
+        <Stack.Screen 
+          name="Comments" 
+          component={CommentsScreen}
+          options={{ headerShown: false }}
         />
       </Stack.Navigator>
     </NavigationContainer>

@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
 import { Post } from '../types';
@@ -17,6 +17,8 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onUpdate }) => {
   const [isLiked, setIsLiked] = useState(post.is_liked || false);
   const [isSaved, setIsSaved] = useState(post.is_saved || false);
   const [likeCount, setLikeCount] = useState(post.like_count || 0);
+
+  const isOwnPost = user?.id === post.user_id;
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -63,23 +65,64 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onUpdate }) => {
     }
   };
 
+  const handleDelete = async () => {
+    Alert.alert(
+      'Delete Post',
+      'Are you sure you want to delete this post?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const { error } = await supabase.from('posts').delete().eq('id', post.id);
+              if (error) throw error;
+              Alert.alert('Success', 'Post deleted');
+              if (onUpdate) onUpdate();
+            } catch (error) {
+              console.error('Error deleting post:', error);
+              Alert.alert('Error', 'Failed to delete post');
+            }
+          },
+        },
+      ]
+    );
+  };
+
   const navigateToProfile = () => {
-    navigation.navigate('UserProfile' as never, { userId: post.user_id } as never);
+    if (isOwnPost) {
+      navigation.navigate('Profile' as never);
+    } else {
+      navigation.navigate('UserProfile' as never, { userId: post.user_id } as never);
+    }
+  };
+
+  const navigateToComments = () => {
+    navigation.navigate('Comments' as never, { postId: post.id, post: post } as never);
   };
 
   return (
     <View style={styles.card}>
-      <TouchableOpacity style={styles.header} onPress={navigateToProfile}>
-        <View style={styles.avatar}>
-          <Text style={styles.avatarText}>
-            {post.profiles?.username.charAt(0).toUpperCase()}
-          </Text>
-        </View>
-        <View style={styles.userInfo}>
-          <Text style={styles.username}>{post.profiles?.username}</Text>
-          <Text style={styles.timestamp}>{formatDate(post.created_at)}</Text>
-        </View>
-      </TouchableOpacity>
+      <View style={styles.headerRow}>
+        <TouchableOpacity style={styles.header} onPress={navigateToProfile}>
+          <View style={styles.avatar}>
+            <Text style={styles.avatarText}>
+              {post.profiles?.username.charAt(0).toUpperCase()}
+            </Text>
+          </View>
+          <View style={styles.userInfo}>
+            <Text style={styles.username}>{post.profiles?.username}</Text>
+            <Text style={styles.timestamp}>{formatDate(post.created_at)}</Text>
+          </View>
+        </TouchableOpacity>
+
+        {isOwnPost && (
+          <TouchableOpacity onPress={handleDelete} style={styles.deleteButton}>
+            <Ionicons name="trash-outline" size={20} color="#ef4444" />
+          </TouchableOpacity>
+        )}
+      </View>
 
       {post.image_url && (
         <Image source={{ uri: post.image_url }} style={styles.postImage} />
@@ -93,6 +136,11 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onUpdate }) => {
             color={isLiked ? '#ef4444' : '#000'} 
           />
           <Text style={styles.actionText}>{likeCount}</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity onPress={navigateToComments} style={styles.actionButton}>
+          <Ionicons name="chatbubble-outline" size={24} color="#000" />
+          <Text style={styles.actionText}>{post.comment_count || 0}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity onPress={handleSave} style={styles.actionButton}>
@@ -109,6 +157,14 @@ export const PostCard: React.FC<PostCardProps> = ({ post, onUpdate }) => {
           <Text style={styles.usernameInContent}>{post.profiles?.username}</Text> {post.content}
         </Text>
       </View>
+
+      {(post.comment_count || 0) > 0 && (
+        <TouchableOpacity onPress={navigateToComments} style={styles.viewComments}>
+          <Text style={styles.viewCommentsText}>
+            View all {post.comment_count} comments
+          </Text>
+        </TouchableOpacity>
+      )}
     </View>
   );
 };
@@ -120,10 +176,17 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
   },
+  headerRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingRight: 12,
+  },
   header: {
     flexDirection: 'row',
     alignItems: 'center',
     padding: 12,
+    flex: 1,
   },
   avatar: {
     width: 40,
@@ -151,6 +214,9 @@ const styles = StyleSheet.create({
     color: '#666',
     marginTop: 2,
   },
+  deleteButton: {
+    padding: 8,
+  },
   postImage: {
     width: '100%',
     height: 300,
@@ -173,7 +239,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 12,
-    paddingBottom: 12,
+    paddingBottom: 8,
   },
   contentText: {
     fontSize: 15,
@@ -182,5 +248,13 @@ const styles = StyleSheet.create({
   },
   usernameInContent: {
     fontWeight: '600',
+  },
+  viewComments: {
+    paddingHorizontal: 12,
+    paddingBottom: 12,
+  },
+  viewCommentsText: {
+    color: '#666',
+    fontSize: 14,
   },
 });

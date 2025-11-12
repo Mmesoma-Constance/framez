@@ -19,6 +19,7 @@ export interface Post {
   like_count?: number;
   is_liked?: boolean;
   is_saved?: boolean;
+  comment_count?: number;
 }
 
 export interface Like {
@@ -26,6 +27,15 @@ export interface Like {
   user_id: string;
   post_id: string;
   created_at: string;
+}
+
+export interface Comment {
+  id: string;
+  user_id: string;
+  post_id: string;
+  content: string;
+  created_at: string;
+  profiles?: Profile;
 }
 
 export interface SavedPost {

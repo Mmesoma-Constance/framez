@@ -4,30 +4,24 @@
     "slug": "framez-app",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
     "splash": {
-      "image": "./assets/splash.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
-    "assetBundlePatterns": [
-      "**/*"
-    ],
+    "assetBundlePatterns": ["**/*"],
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.yourname.framezapp"
+      "bundleIdentifier": "com.stace.framezapp"
     },
     "android": {
+      "package": "com.stace.framezapp",
+      "permissions": ["android.permission.RECORD_AUDIO"],
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
-      },
-      "package": "com.yourname.framezapp"
+      }
     },
-    "web": {
-      "favicon": "./assets/favicon.png"
-    },
+    "web": {},
     "plugins": [
       [
         "expo-image-picker",
@@ -35,6 +29,11 @@
           "photosPermission": "The app accesses your photos to let you share them with your friends."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "55fd15d4-7f8c-469a-ab36-55fd9c4364d0"
+      }
+    }
   }
 }
